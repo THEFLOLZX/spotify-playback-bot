@@ -10,27 +10,22 @@ redirect_uri = "http://localhost:8888/callback"
 # Create the SpotifyOAuth object
 sp_oauth = SpotifyOAuth(client_id, client_secret, redirect_uri, scope="user-library-read user-modify-playback-state user-read-playback-state")
 
-# Check for an existing token in the environment (use .env or a secure method for storing tokens)
-token_info = sp_oauth.get_cached_token()
+# Paste your authorization code here
+auth_code = "AQCosjBuyhNx46S9BdKuPUc8wOoTzyptViJLXPcYSWMKLeGD_a5z9Ng-U4Gw4oKDK2adWa27a5tO22vqZIE6GrtCf40GAGU8fYjmRYAZ0vHyG_Ww_2LWVJr-_GOBAOA42-bvSo1vdZFfeZWHdJw6_PDhreAYFluZpwFNQ-kRoRdYY2UhboEQtJMMJ_nCoK6-RdFeqD_DaD9kkdbK6M6EremFpdQ9rGo6BcBclZ8C2rjp3M0C4PPFBd6ZFTjBrLy8II9Lg4WKHbwUJCc"
 
-if not token_info:
-    # If there's no token cached, we need to get a new token
-    auth_url = sp_oauth.get_authorize_url()
-    print(f"Go to the following URL and paste the resulting code here: {auth_url}")
-    auth_code = input("Enter the code from the URL: ")
-    token_info = sp_oauth.get_access_token(auth_code)
+# Get the token using the authorization code
+token_info = sp_oauth.get_access_token(auth_code)
 
 # Initialize Spotipy with the token
 sp = spotipy.Spotify(auth=token_info['access_token'])
 
-# Save the token for future use (you can persist it to an environment variable or a file)
-# Example: save to a file or environment variable
-# os.environ['SPOTIPY_TOKEN'] = token_info['access_token']
+# Device ID from your previous result
+device_id = '193d3482d8fb5f2f3f5796606722f1d4b6bb5acb'  # Your device ID
+# Playlist URI from the playlist link you provided
+playlist_uri = 'spotify:playlist:4beauqcBlaUMTmtsIucXeP'  # Your playlist URI
 
 # Now, you can interact with the Spotify API
 def play_song():
-    device_id = 'YOUR_DEVICE_ID'
-    track_uri = 'YOUR_PLAYLIST_URI'
-    sp.start_playback(device_id=device_id, uris=[track_uri])
+    sp.start_playback(device_id=device_id, uris=[playlist_uri])
 
 play_song()
