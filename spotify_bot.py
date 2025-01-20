@@ -1,46 +1,34 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-import time
+from flask import Flask, request
 
-client_id = 'daccc75eac95417bb1a7d6af713569ec'  # Your client ID
-client_secret = 'f63aad051b0748f7b51de83f97aef31f'  # Your client secret
+# Spotify credentials (replace with your actual credentials)
+client_id = 'daccc75eac95417bb1a7d6af713569ec'
+client_secret = 'f63aad051b0748f7b51de83f97aef31f'
 redirect_uri = 'http://localhost:8888/callback'
-refresh_token = 'AQCl56KQsjEZ1l2_H9oWUIUUreEQ7pqs76E0djig7NmDsN-iyU5xIaZ47dNfEx1-By9mbtxFvxF-4Mbma8YJCRSppY2_oZOm7gpvbrVp60qp-ssENiuKLlNTb1EEOtLHoOM'  # Your refresh token
-playlist_uri = 'spotify:playlist:4beauqcBlaUMTmtsIucXeP'  # Replace with your playlist URI
 
-# Initialize SpotifyOAuth to manage the authentication flow
-sp_oauth = SpotifyOAuth(client_id, client_secret, redirect_uri)
+# Initialize Flask app
+app = Flask(__name__)
 
-def refresh_and_play():
-    # Refresh the access token using the refresh token
-    token_info = sp_oauth.refresh_access_token(refresh_token)
-    access_token = token_info['access_token']
+# Spotify OAuth setup
+scope = "user-library-read user-modify-playback-state user-read-playback-state"
+sp_oauth = SpotifyOAuth(client_id, client_secret, redirect_uri, scope=scope)
 
-    # Set up the Spotify client with the new access token
-    sp = spotipy.Spotify(auth=access_token)
+@app.route('/')
+def home():
+    return 'Spotify Playback Bot is running!'
 
-    # Fetch available devices
-    devices = sp.devices()
+@app.route('/callback')
+def callback():
+    # Get the auth code from Spotify redirect
+    auth_code = request.args.get('code')
+    
+    # Get the token info (including the refresh token)
+    token_info = sp_oauth.get_access_token(auth_code)
+    refresh_token = token_info['refresh_token']
+    
+    return f'Your refresh token is: {refresh_token}'
 
-    # If no devices are found, notify the user
-    if not devices['devices']:
-        print("No available devices found.")
-        return
-
-    # Assuming you want to use the first available device (modify accordingly if you have multiple)
-    device_id = devices['devices'][0]['id']
-    print(f"Using device: {devices['devices'][0]['name']}")
-
-    # Start playback of the playlist on the selected device
-    sp.start_playback(device_id=device_id, context_uri=playlist_uri)
-    print("Playback started on device:", devices['devices'][0]['name'])
-
-# Run the bot continuously
-while True:
-    try:
-        refresh_and_play()
-        # Wait for 60 minutes before refreshing the token and starting the playback again
-        time.sleep(60 * 60)  # 1 hour
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        time.sleep(60)  # Wait for 1 minute before retrying
+# Start the Flask app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=80)
