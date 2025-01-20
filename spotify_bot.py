@@ -1,34 +1,24 @@
+from flask import Flask
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from flask import Flask, request
 
-# Spotify credentials (replace with your actual credentials)
-client_id = 'daccc75eac95417bb1a7d6af713569ec'
-client_secret = 'f63aad051b0748f7b51de83f97aef31f'
-redirect_uri = 'http://localhost:8888/callback'
-
-# Initialize Flask app
 app = Flask(__name__)
 
-# Spotify OAuth setup
-scope = "user-library-read user-modify-playback-state user-read-playback-state"
-sp_oauth = SpotifyOAuth(client_id, client_secret, redirect_uri, scope=scope)
+# Spotify API setup
+sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="0906c26b3e8c4b9bb4e1c9a00b26172d",
+                                                client_secret="f34b0d6dfb3e4b678790de470a8a57fc",
+                                                redirect_uri="http://localhost:8888/callback"))
+
+# Use the playlist ID you provided
+playlist_uri = "spotify:playlist:4beauqcBlaUMTmtsIucXeP"  # Your playlist ID
 
 @app.route('/')
-def home():
-    return 'Spotify Playback Bot is running!'
+def start_playing_music():
+    # Start playback on the user's active device
+    sp.start_playback(context_uri=playlist_uri)
 
-@app.route('/callback')
-def callback():
-    # Get the auth code from Spotify redirect
-    auth_code = request.args.get('code')
-    
-    # Get the token info (including the refresh token)
-    token_info = sp_oauth.get_access_token(auth_code)
-    refresh_token = token_info['refresh_token']
-    
-    return f'Your refresh token is: {refresh_token}'
+    return "Music is now playing from your playlist!"
 
-# Start the Flask app
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    # Automatically start playback when the app is deployed
+    app.run(debug=False, host="0.0.0.0", port=80)
